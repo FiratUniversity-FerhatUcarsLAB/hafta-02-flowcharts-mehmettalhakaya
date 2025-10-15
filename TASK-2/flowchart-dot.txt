@@ -1,0 +1,76 @@
+digraph Ecommerce_Checkout {
+    rankdir=TB; nodesep=0.45; ranksep=0.6;
+    node [fontname="Helvetica", fontsize=11, shape=box];
+
+    start   [shape=ellipse, label="BAŞLA"];
+    loginIn [shape=parallelogram, label="OKU kullanıcı_adı, şifre"];
+    loginOk [shape=diamond, label="Giriş başarılı mı?"];
+    badLog  [shape=parallelogram, label="YAZ Hatalı giriş"];
+    end     [shape=ellipse, label="BİTİR"];
+
+    // Sepet döngüsü
+    pick    [shape=parallelogram, label="OKU ürün_id, adet"];
+    stockOk [shape=diamond, label="Stok yeterli mi?"];
+    addCart [label="SEPETE_EKLE"];
+    noStock [shape=parallelogram, label="YAZ Yetersiz stok"];
+    moreQ   [shape=diamond, label="Başka ürün? (E/H)"];
+
+    // İndirim
+    hasDisc [shape=diamond, label="İndirim kodu var mı?"];
+    discIn  [shape=parallelogram, label="OKU indirim_kodu"];
+    discOk  [shape=diamond, label="İndirim geçerli mi?"];
+    useDisc [label="İndirimi uygula"];
+    badDisc [shape=parallelogram, label="YAZ Geçersiz indirim"];
+
+    // Kargo & Toplam
+    addrIn  [shape=parallelogram, label="OKU teslimat_adresi"];
+    shipCal [label="kargo_ucreti = hesapla(...)"];
+    subtotal[label="ara_toplam = sepet_toplam()"];
+    grand   [label="genel_toplam = ara_toplam + kargo_ucreti"];
+    totalOut[shape=parallelogram, label="YAZ Ödenecek Tutar"];
+
+    // Ödeme
+    payIn   [shape=parallelogram, label="OKU ödeme_yöntemi\n(gerekirse KK bilgileri)"];
+    auth    [shape=diamond, label="Ödeme yetkilendirildi mi?"];
+    order   [label="sipariş_olustur()"];
+    okOut   [shape=parallelogram, label="YAZ Ödeme başarılı\nSipariş No ve makbuz"];
+    failOut [shape=parallelogram, label="YAZ Ödeme reddedildi"];
+    retry   [shape=diamond, label="Tekrar dene? (E/H)"];
+
+    // Akış
+    start -> loginIn -> loginOk;
+    loginOk -> badLog  [label="Hayır"];
+    badLog  -> end;
+    loginOk -> pick    [label="Evet"];
+
+    // Sepet döngüsü
+    pick -> stockOk;
+    stockOk -> addCart [label="Evet"];
+    addCart -> moreQ;
+    stockOk -> noStock [label="Hayır"];
+    noStock -> moreQ;
+    moreQ -> pick      [label="Evet"];
+    moreQ -> hasDisc   [label="Hayır"];
+
+    // İndirim kolu
+    hasDisc -> discIn  [label="Evet"];
+    discIn  -> discOk;
+    discOk  -> useDisc [label="Evet"];
+    useDisc -> addrIn;
+    discOk  -> badDisc [label="Hayır"];
+    badDisc -> addrIn;
+    hasDisc -> addrIn  [label="Hayır"];
+
+    // Kargo & toplam
+    addrIn -> shipCal -> subtotal -> grand -> totalOut -> payIn;
+
+    // Ödeme
+    payIn -> auth;
+    auth -> order  [label="Evet"];
+    order -> okOut -> end;
+
+    auth -> failOut [label="Hayır"];
+    failOut -> retry;
+    retry -> payIn  [label="Evet"];
+    retry -> end    [label="Hayır"];
+}
