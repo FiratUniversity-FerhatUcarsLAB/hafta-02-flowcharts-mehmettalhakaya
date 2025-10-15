@@ -1,0 +1,81 @@
+digraph DersKayit {
+    rankdir=TB; nodesep=0.45; ranksep=0.7;
+    node [fontname="Helvetica", fontsize=11, shape=box];
+
+    start   [shape=ellipse, label="BAŞLA"];
+    loginIn [shape=parallelogram, label="OKU öğr. no, şifre"];
+    loginOk [shape=diamond, label="Giriş başarılı mı?"];
+    badLog  [shape=parallelogram, label="YAZ Giriş başarısız"];
+    list    [label="DERS_LISTESI = getir(...)"];
+    outList [shape=parallelogram, label="YAZ Ders listesi"];
+    init    [label="secilenler=∅, toplam_kredi=0,\nkredi_limiti=hesapla()"];
+
+    pick    [shape=parallelogram, label="OKU Ders kodu (0=bitir)"];
+    doneSel [shape=diamond, label="Ders kodu = 0 ?"];
+
+    // Kontroller
+    capOk   [shape=diamond, label="Kontenjan uygun mu?"];
+    capNo   [shape=parallelogram, label="YAZ Kontenjan dolu"];
+
+    preOk   [shape=diamond, label="Ön koşul sağlanıyor mu?"];
+    preNo   [shape=parallelogram, label="YAZ Ön koşul yok"];
+
+    timeOk  [shape=diamond, label="Zaman çakışması var mı?"];
+    timeNo  [shape=parallelogram, label="YAZ Çakışma var"];
+
+    credOk  [shape=diamond, label="Kredi limiti aşılır mı?"];
+    credNo  [shape=parallelogram, label="YAZ Kredi limiti aşılıyor"];
+
+    add     [label="secilenlere ekle;\ntoplam_kredi += kredi(ders)"];
+    added   [shape=parallelogram, label="YAZ Ders eklendi"];
+
+    // Onay
+    summary [shape=parallelogram, label="YAZ Seçimler + Toplam kredi"];
+    askSend [shape=diamond, label="Danışmana gönderilsin mi?"];
+    notSend [shape=parallelogram, label="YAZ Gönderilmedi"];
+    approve [shape=diamond, label="Danışman onayı?"];
+    final   [label="kesinlestir_kayit(...)"];
+    okOut   [shape=parallelogram, label="YAZ Kayıt kesinleşti"];
+    rejOut  [shape=parallelogram, label="YAZ Reddedildi + neden"];
+    end     [shape=ellipse, label="BİTİR"];
+
+    // Akış
+    start -> loginIn -> loginOk;
+    loginOk -> badLog  [label="Hayır"];
+    badLog  -> end;
+    loginOk -> list    [label="Evet"];
+    list -> outList -> init -> pick;
+    pick -> doneSel;
+    doneSel -> summary [label="Evet"];
+    doneSel -> capOk   [label="Hayır"];
+
+    capOk -> preOk   [label="Evet"];
+    capOk -> capNo   [label="Hayır"];
+    capNo -> pick;
+
+    preOk -> timeOk  [label="Evet"];
+    preOk -> preNo   [label="Hayır"];
+    preNo -> pick;
+
+    timeOk -> timeNo [label="Evet"];   // çakışma var
+    timeOk -> credOk [label="Hayır"];  // çakışma yok
+    timeNo -> pick;
+
+    credOk -> credNo [label="Evet"];   // limit aşılır
+    credOk -> add    [label="Hayır"];  // limit uygun
+    credNo -> pick;
+
+    add -> added -> pick;
+
+    // Onay bölümü
+    summary -> askSend;
+    askSend -> notSend [label="Hayır"];
+    notSend -> end;
+
+    askSend -> approve [label="Evet"];
+    approve -> final   [label="ONAY"];
+    final -> okOut -> end;
+
+    approve -> rejOut  [label="RET"];
+    rejOut -> end;
+}
