@@ -1,0 +1,52 @@
+digraph ATM_Para_Cekme {
+    rankdir=TB;
+    nodesep=0.4; ranksep=0.5;
+    node [fontname="Helvetica", fontsize=11, shape=box];
+
+    start   [shape=ellipse, label="BAŞLA"];
+    init    [label="gunluk_limit, cekilen_bugun=0\nbakiye, deneme=0"];
+    pin_in  [shape=parallelogram, label="OKU PIN"];
+    pin_ok  [shape=diamond, label="PIN doğru mu?"];
+    inc_try [label="deneme = deneme + 1"];
+    tries3  [shape=diamond, label="deneme == 3?"];
+    blocked [shape=parallelogram, label="YAZ Kart bloke edildi"];
+    end     [shape=ellipse, label="BİTİR"];
+
+    amt_in  [shape=parallelogram, label="OKU çekilecek_tutar"];
+    mult20  [shape=diamond, label="20 TL katı mı?"];
+    not20   [shape=parallelogram, label="YAZ Tutar 20 TL katı olmalı"];
+    balok   [shape=diamond, label="Bakiye yeterli mi?"];
+    nobal   [shape=parallelogram, label="YAZ Yetersiz bakiye"];
+    limok   [shape=diamond, label="Günlük limit aşılır mı?"];
+    nolim   [shape=parallelogram, label="YAZ Günlük limit aşılıyor"];
+    do_txn  [label="bakiye -= tutar\ncekilen_bugun += tutar"];
+    disp    [shape=parallelogram, label="YAZ Para verildi"];
+    again   [shape=diamond, label="Başka işlem? (E/H)"];
+
+    // Akışlar
+    start -> init -> pin_in -> pin_ok;
+    pin_ok -> amt_in   [label="Evet"];
+    pin_ok -> inc_try  [label="Hayır"];
+    inc_try -> tries3;
+    tries3 -> blocked  [label="Evet"];
+    blocked -> end;
+    tries3 -> pin_in   [label="Hayır"];
+
+    // İşlem döngüsü
+    amt_in -> mult20;
+    mult20 -> balok  [label="Evet"];
+    mult20 -> not20  [label="Hayır"];
+    not20  -> amt_in;
+
+    balok  -> limok  [label="Evet"];
+    balok  -> nobal  [label="Hayır"];
+    nobal  -> amt_in;
+
+    limok  -> do_txn [label="Hayır"]; // aşılmıyorsa işleme devam
+    limok  -> nolim  [label="Evet"];
+    nolim  -> amt_in;
+
+    do_txn -> disp -> again;
+    again  -> amt_in [label="Evet"];
+    again  -> end    [label="Hayır"];
+}
