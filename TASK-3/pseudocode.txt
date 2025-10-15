@@ -1,0 +1,58 @@
+Modül 1: Randevu Alma
+BAŞLA_RANDEVU
+    OKU tc_kimlik, sifre
+    EĞER kimlik_dogrula(tc_kimlik, sifre) DEĞİLSE
+        YAZ "Hatalı giriş"; DÖN ANA_MENU
+    BİTİR
+
+    OKU poliklinik
+    doktor_listesi <- doktorlari_getir(poliklinik)
+    YAZ doktor_listesi
+
+    OKU doktor
+    uygun_saatler <- saatleri_getir(doktor)
+    YAZ uygun_saatler
+
+    OKU secilen_saat
+    EĞER saat_müsait_mi(doktor, secilen_saat) DEĞİLSE
+        YAZ "Saat dolu"; DÖN BAŞLA_RANDEVU
+    BİTİR
+
+    randevu_no <- randevu_olustur(tc_kimlik, doktor, secilen_saat)
+    SMS_GÖNDER(tc_kimlik, "Randevunuz onaylandı: " + randevu_no)
+    YAZ "Randevu onaylandı: " + randevu_no
+    DÖN ANA_MENU
+BİTİR_RANDEVU
+--------------------------------------------------------------------------------------------------------------------
+Modül 2: Tahlil Sonuçları
+BAŞLA_TAHLIL
+    OKU tc_kimlik, sifre
+    EĞER kimlik_dogrula(tc_kimlik, sifre) DEĞİLSE
+        YAZ "Hatalı giriş"; DÖN ANA_MENU
+    BİTİR
+
+    EĞER tahlil_var_mi(tc_kimlik) DEĞİLSE
+        YAZ "Kayıtlı tahlil bulunamadı"; DÖN ANA_MENU
+    BİTİR
+
+    EĞER tahlil_hazir_mi(tc_kimlik) İSE
+        sonuç <- tahlil_getir(tc_kimlik)
+        YAZ sonuç_özet(sonuç)
+        OKU "PDF indirilsin mi? (E/H)" -> ind
+        EĞER ind == "E" İSE PDF_INDİR(sonuç) BİTİR
+    DEĞİLSE
+        YAZ "Sonuçlar hazırlanıyor, lütfen daha sonra tekrar deneyiniz."
+    BİTİR
+    DÖN ANA_MENU
+BİTİR_TAHLIL
+--------------------------------------------------------------------------------------------------------------------
+Ana Menü (Birleştirme)
+BAŞLA
+DÖNGÜ true
+    YAZ "1) Randevu Alma  2) Tahlil Sonuçları  3) Çıkış"
+    OKU secim
+    EĞER secim == 1 İSE ÇAĞIR BAŞLA_RANDEVU
+    EĞER secim == 2 İSE ÇAĞIR BAŞLA_TAHLIL
+    EĞER secim == 3 İSE ÇIK DÖNGÜ
+BİTİR DÖNGÜ
+BİTİR
