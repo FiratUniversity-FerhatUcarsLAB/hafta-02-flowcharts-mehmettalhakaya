@@ -1,0 +1,43 @@
+digraph GercekZamanliGuvenlik {
+    rankdir=TB; nodesep=0.5; ranksep=0.7;
+    node [fontname="Helvetica", fontsize=11, shape=box];
+
+    start [shape=ellipse, label="BAŞLA"];
+    init  [label="Sensörleri başlat\nAğ bağlantısını kontrol et"];
+    logOn [shape=parallelogram, label="YAZ Sistem aktif - 7/24 izleme"];
+
+    loopStart [shape=ellipse, label="DÖNGÜ BAŞI\n(Sürekli)", style=dashed];
+    read [shape=box, label="Sensör verilerini oku\n(hareket, duman, kapı, sıcaklık)"];
+    threat [shape=diamond, label="Tehdit seviyesi hesapla"];
+    safe [shape=parallelogram, label="YAZ Durum: Güvenli"];
+    low [shape=parallelogram, label="YAZ Düşük seviye tehdit\nbildir(ev sahibi)"];
+    med [shape=parallelogram, label="YAZ Orta seviye tehdit\nalarm + bildir(polis)"];
+    high [shape=parallelogram, label="YAZ Acil durum!\nAlarm + bildir(itfaiye)"];
+
+    resetQ [shape=parallelogram, label="OKU Alarm sıfırlansın mı? (E/H)"];
+    reset [label="alarm_sıfırla()"];
+    resetOut [shape=parallelogram, label="YAZ Alarm sıfırlandı"];
+    wait [shape=box, label="BEKLE (5 sn)"];
+    back [shape=ellipse, label="Sürekli", style=dotted];
+
+    end [shape=ellipse, label="BİTİR"];
+
+    start -> init -> logOn -> loopStart -> read -> threat;
+
+    threat -> safe [label="Seviye=0"];
+    threat -> low  [label="Seviye ≤2"];
+    threat -> med  [label="Seviye ≤4"];
+    threat -> high [label="Seviye >4"];
+
+    safe -> resetQ;
+    low  -> resetQ;
+    med  -> resetQ;
+    high -> resetQ;
+
+    resetQ -> reset [label="Evet"];
+    reset -> resetOut -> wait;
+    resetQ -> wait [label="Hayır"];
+
+    wait -> back [label="Sürekli döngü"];
+    back -> loopStart;
+}
